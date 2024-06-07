@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+postgres-data/*
+pgadmin-data/*
+logs/*
+
+.vscode
