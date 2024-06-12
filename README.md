@@ -216,7 +216,7 @@ For this to work, we need to add the ingest_db_conn_id connection in the airflow
 ```
 ![airflow connection](res/connections.png)
 
-For each sources, we will also assign a pool with 1 slots each **(Admin > Pools)**
+For each sources, we will also assign a pool with 1 slot each **(Admin > Pools)**
 ![alt text](res/pools.png)
 
 By using the initially provided crawler configs, the following dags will be generated
