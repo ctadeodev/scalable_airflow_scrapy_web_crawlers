@@ -1,10 +1,10 @@
-CREATE SCHEMA jobs;
+CREATE SCHEMA IF NOT EXISTS jobs;
 
 CREATE TABLE IF NOT EXISTS jobs.sources (
     source_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     url VARCHAR(100) NOT NULL
-)
+);
 
 CREATE TABLE IF NOT EXISTS jobs.jobs (
     job_id SERIAL PRIMARY KEY,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS jobs.jobs (
     date_posted TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
+);
 
 CREATE TABLE IF NOT EXISTS jobs.crawlers (
     id SERIAL PRIMARY KEY,
@@ -30,24 +30,29 @@ CREATE TABLE IF NOT EXISTS jobs.crawlers (
     crawler_name VARCHAR(200) NOT NULL,
     args VARCHAR(200) NOT NULL,
     frequency VARCHAR(20) NOT NULL,
-    enabled BOOLEAN DEFAULT TRUE
+    enabled BOOLEAN DEFAULT TRUE,
+    priority INT DEFAULT 4,
+    pool VARCHAR(100) NOT NULL
 );
 
--- INSERT INTO jobs.crawlers (source_id, name, crawler_name, args, frequency) VALUES (1, 'online_jobs_ph_python_developer', 'online_jobs_ph', '-a "job=python developer"', 'daily');
--- INSERT INTO jobs.crawlers (source_id, name, crawler_name, args, frequency) VALUES (1, 'online_jobs_ph_data_engineer', 'online_jobs_ph', '-a "job=data engineer"', 'daily');
--- INSERT INTO jobs.crawlers (source_id, name, crawler_name, args, frequency) VALUES (1, 'online_jobs_ph_software_engineer', 'online_jobs_ph', '-a "job=software engineer"', 'daily');
--- INSERT INTO jobs.crawlers (source_id, name, crawler_name, args, frequency) VALUES (1, 'online_jobs_ph_software_developer', 'online_jobs_ph', '-a "job=software developer"', 'daily');
--- INSERT INTO jobs.crawlers (source_id, name, crawler_name, args, frequency) VALUES (1, 'online_jobs_ph_python_programmer', 'online_jobs_ph', '-a "job=python programmer"', 'daily');
--- INSERT INTO jobs.crawlers (source_id, name, crawler_name, args, frequency, enabled) VALUES (1, 'online_jobs_ph_va', 'online_jobs_ph', '-a "job=va"', 'daily', FALSE);
-
-CREATE TABLE jobs.highwatermark (
-    id SERIAL PRIMARY KEY,
-    crawler_id INT REFERENCES jobs.crawlers(id),
-    name VARCHAR(100) NOT NULL,
-    value VARCHAR(200) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
-
-CREATE INDEX idx_jobs_source_id ON jobs.jobs (source_id);
-CREATE INDEX idx_jobs_match_id ON jobs.jobs (match_id);
-CREATE INDEX idx_highwatermark_crawler_id ON jobs.highwatermark (crawler_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_indexes
+        WHERE schemaname = 'jobs'
+        AND tablename = 'jobs'
+        AND indexname = 'idx_jobs_source_id'
+    ) THEN
+        CREATE INDEX idx_jobs_source_id ON jobs.jobs (source_id);
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_indexes
+        WHERE schemaname = 'jobs'
+        AND tablename = 'jobs'
+        AND indexname = 'idx_jobs_match_id'
+    ) THEN
+        CREATE INDEX idx_jobs_match_id ON jobs.jobs (match_id);
+    END IF;
+END $$;
