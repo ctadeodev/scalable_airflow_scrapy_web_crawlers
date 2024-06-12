@@ -14,7 +14,7 @@ class OnlineJobsPhSpider(scrapy.Spider):
 
     def start_requests(self):
         query = {
-            'jobkeyword': self.job,
+            'jobkeyword': self.query,
             'fullTime': getattr(self, 'fulltime', 'on'),
             'partTime': getattr(self, 'parttime', 'on'),
             'Freelance': getattr(self, 'freelance', 'on'),
