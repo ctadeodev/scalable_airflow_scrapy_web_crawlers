@@ -15,7 +15,7 @@ def fetch_crawler_jobs():
     connection = pg_hook.get_conn()
     cursor = connection.cursor()
     cursor.execute(
-        """SELECT name, crawler_name, args, frequency
+        """SELECT name, crawler_name, args, frequency, pool, priority
            FROM jobs.crawlers
            WHERE enabled=TRUE
         """
@@ -25,7 +25,7 @@ def fetch_crawler_jobs():
     connection.close()
     return records
 
-def create_dag(name, crawler_name, args, frequency):
+def create_dag(name, crawler_name, args, frequency, pool, priority):
     """
     Creates a DAG with dynamically generated Bash tasks based on the job record.
     """
@@ -43,7 +43,7 @@ def create_dag(name, crawler_name, args, frequency):
         name,
         default_args=default_args,
         description='A DAG with dynamically generated Bash tasks',
-        schedule_interval='@daily',  # Schedule to run daily,
+        schedule_interval=f'@{frequency}',  # Schedule to run daily,
         catchup=False
     )
 
@@ -54,6 +54,8 @@ def create_dag(name, crawler_name, args, frequency):
         task_id=f'job_{name}',
         bash_command=f"scrapy crawl {crawler_name} {args}",
         cwd='/opt/airflow/dags/jobs',
+        pool=pool,
+        priority_weight=priority,
         dag=dag,
     )
 
@@ -65,5 +67,5 @@ def create_dag(name, crawler_name, args, frequency):
 crawler_jobs = fetch_crawler_jobs()
 
 # Create a DAG for each job record
-for (name, crawler_name, args, frequency) in crawler_jobs:
-    globals()[name] = create_dag(name, crawler_name, args, frequency)
+for (name, crawler_name, args, frequency, pool, priority) in crawler_jobs:
+    globals()[name] = create_dag(name, crawler_name, args, frequency, pool, priority)
