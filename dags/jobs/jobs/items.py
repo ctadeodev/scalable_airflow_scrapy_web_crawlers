@@ -7,6 +7,7 @@ import scrapy
 
 
 class JobItem(scrapy.Item):
+    match_id = scrapy.Field()
     source_id = scrapy.Field()
     match_id = scrapy.Field()
     job_url = scrapy.Field()

@@ -1,16 +1,16 @@
+import re
 from urllib.parse import urlencode
 
 import scrapy
 from scrapy.http import Request
-from scrapy.utils.response import open_in_browser
 
 from jobs.items import JobItem
 
 
 class OnlineJobsPhSpider(scrapy.Spider):
     name = 'online_jobs_ph'
-    base_url = 'https://www.onlinejobs.ph'
-    job_search_url = f'{base_url}/jobseekers/jobsearch?'
+    base_url = 'https://www.onlinejobs.ph/'
+    job_search_url = f'{base_url}jobseekers/jobsearch?'
 
     def start_requests(self):
         query = {
@@ -46,6 +46,7 @@ class OnlineJobsPhSpider(scrapy.Spider):
             xpath_expr = f'//*[text()="{keyword}"]/following-sibling::*[1]/text()'
             return response.xpath(xpath_expr).get().strip()
         yield JobItem(
+            match_id=self.get_match_id(response.url),
             job_url=response.url,
             job_title=response.meta['Job Title'],
             work_type=get_value('TYPE OF WORK'),
@@ -56,3 +57,6 @@ class OnlineJobsPhSpider(scrapy.Spider):
             job_description=''.join(response.xpath('//p[@id="job-description"]/text()').extract()),
             date_posted=get_value('DATE POSTED')
         )
+
+    def get_match_id(self, job_url):
+        return re.search(r'-(\d+)$', job_url).group(1)

@@ -1,4 +1,4 @@
-import re
+import os
 import logging
 
 import psycopg2
@@ -13,7 +13,7 @@ class JobsPipeline:
 
     def __init__(self):
         connection_params = {
-            'host': 'postgres',
+            'host': os.environ['PGHOST'],
             'port': 5432,
             'user': 'airflow',
             'password': 'airflow',
@@ -27,7 +27,6 @@ class JobsPipeline:
 
     def process_item(self, item, spider):
         item['source_id'] = self.get_source_id(spider)
-        item['match_id'] = self.get_match_id(item)
         data = self.clean_data(item)
         try:
             self.cursor.execute("""
@@ -88,9 +87,6 @@ class JobsPipeline:
                 raise DropItem(f"Failed to insert source: {spider.name} ({e})")
             return self.get_source_id(spider)
 
-    def get_match_id(self, item):
-        return re.search(r'-(\d+)$', item['job_url']).group(1)
-
     def clean_data(self, item):
         def try_int(value):
             try:
@@ -98,11 +94,10 @@ class JobsPipeline:
             except ValueError:
                 return None
         data = dict(item)
-        data['hours_per_week'] = try_int(data['hours_per_week'])
+        data['hours_per_week'] = try_int(data.get('hours_per_week'))
         return data
 
     def close_spider(self, spider):
-        ## Close cursor & connection to database
         self.cursor.close()
         self.connection.close()
 
