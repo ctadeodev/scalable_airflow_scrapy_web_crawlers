@@ -231,5 +231,5 @@ Requires inserting the following entry to the jobs.crawlers table:
 ```sql
 INSERT INTO jobs.crawlers (source_id, "name", crawler_name, args, frequency, enabled, priority, pool) VALUES (1, 'online_jobs_ph_software_engineer', 'online_jobs_ph', '-a "query=software engineer"', 'daily', true, 4, 'online_jobs_ph_pool');
 ```
-Notice scrapy crawl arguments **-a "query=software engineer"** is added as args in the jobs.crawler table.  
+Notice the scrapy crawl arguments **-a "query=software engineer"** is added as args in the jobs.crawler table.  
 Priority weights can configured on crawlers table to set which crawlers to prioritize running first. Slots in the pools can also be increased as needed to allow running multiple crawlers from each source to run simulataneously.
